@@ -39,9 +39,15 @@ RUN apt-get update && apt-get install -y \
     libusb-dev \
     libusb-1.0 \
     && rm -rf /var/lib/apt/lists/*
+    
+    # prjtrellis
+    RUN git clone --recursive https://github.com/SymbiFlow/prjtrellis.git prjtrellis \
+    && cd prjtrellis && cmake  -DCMAKE_INSTALL_PREFIX=/usr/local . \
+    && make -j$(nproc) && make install && cd - && rm -r prjtrellis
+   
     # nextpnr
     RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
-    && cd nextpnr && cmake -DARCH=ecp5 -DBUILD_GUI=OFF -DCMAKE_INSTALL_PREFIX=/usr/local . \
+    && cd nextpnr && cmake -DARCH=ice40 -DBUILD_GUI=OFF -DCMAKE_INSTALL_PREFIX=/usr/local . \
     && make -j$(nproc) && make install && cd - && rm -r nextpnr
     # prjtrellis
     RUN git clone --recursive https://github.com/SymbiFlow/prjtrellis.git prjtrellis \
