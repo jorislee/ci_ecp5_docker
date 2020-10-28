@@ -50,7 +50,7 @@ RUN apt-get update && apt-get install -y \
     && make -j$(nproc) && make install && cd - && rm -r yosys
     # nextpnr
     RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
-    && cd nextpnr && cmake -DARCH=ice40 -DBUILD_GUI=OFF -DCMAKE_INSTALL_PREFIX=/usr/local . \
+    && cd nextpnr && cmake -DARCH=ecp5 -DBUILD_GUI=OFF -DCMAKE_INSTALL_PREFIX=/usr/local . \
     && make -j$(nproc) && make install && cd - && rm -r nextpnr
     # iverilog
     RUN git clone --recursive https://github.com/steveicarus/iverilog.git iverilog \
