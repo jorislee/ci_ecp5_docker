@@ -38,25 +38,25 @@ RUN apt-get update && apt-get install -y \
     libhidapi-dev \
     libusb-dev \
     libusb-1.0 \
-    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/lib/apt/lists/*
     # nextpnr
-    && git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
+    RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
     && cd nextpnr && cmake -DARCH=ecp5 -DBUILD_GUI=OFF -DCMAKE_INSTALL_PREFIX=/usr/local . \
-    && make -j$(nproc) && make install && cd - && rm -r nextpnr \
+    && make -j$(nproc) && make install && cd - && rm -r nextpnr
     # prjtrellis
-    && git clone --recursive https://github.com/SymbiFlow/prjtrellis.git prjtrellis \
+    RUN git clone --recursive https://github.com/SymbiFlow/prjtrellis.git prjtrellis \
     && cd prjtrellis/libtrellis && cmake -DCMAKE_INSTALL_PREFIX=/usr/local . \
-    && make -j$(nproc) && make clean && make install && cd - && rm -r prjtrellis \
+    && make -j$(nproc) && make clean && make install && cd - && rm -r prjtrellis
     # yosys
-    && git clone --recursive https://github.com/cliffordwolf/yosys.git yosys \
+    RUN git clone --recursive https://github.com/cliffordwolf/yosys.git yosys \
     && cd yosys && make clean && make yosys-abc \
-    && make -j$(nproc) && make install && cd - && rm -r yosys \
+    && make -j$(nproc) && make install && cd - && rm -r yosys
     # iverilog
-    && git clone --recursive https://github.com/steveicarus/iverilog.git iverilog \
+    RUN git clone --recursive https://github.com/steveicarus/iverilog.git iverilog \
     && cd iverilog && autoconf && ./configure && make clean \
-    && make -j$(nproc) && make install && cd - && rm -r iverilog \
+    && make -j$(nproc) && make install && cd - && rm -r iverilog
     # verilator
-    && git clone --recursive https://github.com/ddm/verilator.git verilator \
+    RUN git clone --recursive https://github.com/ddm/verilator.git verilator \
     && cd verilator && autoconf && ./configure && make clean \
     && make -j$(nproc) && make install && cd - && rm -r verilator
  
