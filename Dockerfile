@@ -42,21 +42,16 @@ RUN apt-get update && apt-get install -y \
     
     # prjtrellis
     RUN git clone --recursive https://github.com/SymbiFlow/prjtrellis.git prjtrellis \
-    && cd prjtrellis && cmake  -DCMAKE_INSTALL_PREFIX=/usr/local . \
-    && make -j$(nproc) && make install && cd - && rm -r prjtrellis
-   
-    # nextpnr
-    RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
-    && cd nextpnr && cmake -DARCH=ice40 -DBUILD_GUI=OFF -DCMAKE_INSTALL_PREFIX=/usr/local . \
-    && make -j$(nproc) && make install && cd - && rm -r nextpnr
-    # prjtrellis
-    RUN git clone --recursive https://github.com/SymbiFlow/prjtrellis.git prjtrellis \
     && cd prjtrellis/libtrellis && cmake -DCMAKE_INSTALL_PREFIX=/usr/local . \
     && make -j$(nproc) && make clean && make install && cd - && rm -r prjtrellis
     # yosys
     RUN git clone --recursive https://github.com/cliffordwolf/yosys.git yosys \
     && cd yosys && make clean && make yosys-abc \
     && make -j$(nproc) && make install && cd - && rm -r yosys
+    # nextpnr
+    RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
+    && cd nextpnr && cmake -DARCH=ice40 -DBUILD_GUI=OFF -DCMAKE_INSTALL_PREFIX=/usr/local . \
+    && make -j$(nproc) && make install && cd - && rm -r nextpnr
     # iverilog
     RUN git clone --recursive https://github.com/steveicarus/iverilog.git iverilog \
     && cd iverilog && autoconf && ./configure && make clean \
