@@ -1,10 +1,10 @@
 # ecp5 compilation environment docker
 
-Based on ubuntu:18.04 configure ecp5 compilation environment docker.
+Based on ubuntu:20.04 configure ecp5 compilation environment docker.
 
 ## Dockerfile
   ``` shell
-  FROM ubuntu:18.04
+  FROM ubuntu:20.04
 
   ARG DEBIAN_FRONTEND=noninteractive
 
@@ -48,7 +48,7 @@ Based on ubuntu:18.04 configure ecp5 compilation environment docker.
 
       # prjtrellis
       RUN git clone --recursive https://github.com/SymbiFlow/prjtrellis.git prjtrellis \
-      && cd prjtrellis/libtrellis && cmake -DCMAKE_INSTALL_PREFIX=/usr/local . \
+      && cd prjtrellis/libtrellis && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
       && make -j$(nproc) && make clean && make install && cd - && rm -r prjtrellis
       # yosys
       RUN git clone --recursive https://github.com/cliffordwolf/yosys.git yosys \
@@ -56,7 +56,7 @@ Based on ubuntu:18.04 configure ecp5 compilation environment docker.
       && make -j$(nproc) && make install && cd - && rm -r yosys
       # nextpnr
       RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
-      && cd nextpnr && cmake -DARCH=ecp5 -DBUILD_GUI=OFF -DCMAKE_INSTALL_PREFIX=/usr/local . \
+      && cd nextpnr && cmake . -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local \
       && make -j$(nproc) && make install && cd - && rm -r nextpnr
       # iverilog
       RUN git clone --recursive https://github.com/steveicarus/iverilog.git iverilog \
