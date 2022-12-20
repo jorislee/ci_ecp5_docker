@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
-
+    
 RUN apt-get update && apt-get install -y \
     # IceStorm and friends
     bison \
@@ -38,10 +38,12 @@ RUN apt-get update && apt-get install -y \
     libhidapi-dev \
     libusb-dev \
     libusb-1.0 \
+    zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
     
     # prjtrellis
-    RUN git clone --recursive https://github.com/SymbiFlow/prjtrellis.git prjtrellis \
+    RUN git clone --recursive https://github.com/YosysHQ/prjtrellis.git prjtrellis \
+    && cd prjtrellis && source environment.sh && cd - \
     && cd prjtrellis/libtrellis && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
     && make -j$(nproc) && make clean && make install && cd - && rm -r prjtrellis
     # yosys
@@ -54,7 +56,7 @@ RUN apt-get update && apt-get install -y \
     && make -j$(nproc) && make install && cd - && rm -r nextpnr
     # iverilog
     RUN git clone --recursive https://github.com/steveicarus/iverilog.git iverilog \
-    && cd iverilog && autoconf && ./configure && make clean \
+    && cd iverilog && make check && autoconf && ./configure && make clean \
     && make -j$(nproc) && make install && cd - && rm -r iverilog
     # verilator
     RUN git clone --recursive https://github.com/ddm/verilator.git verilator \
