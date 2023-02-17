@@ -41,26 +41,22 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
     
-    # prjtrellis
-    RUN git clone --recursive https://github.com/YosysHQ/prjtrellis.git prjtrellis \
-    && cd prjtrellis && source environment.sh && cd - \
-    && cd prjtrellis/libtrellis && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
-    && make -j$(nproc) && make clean && make install && cd - && rm -r prjtrellis
     # yosys
     RUN git clone --recursive https://github.com/cliffordwolf/yosys.git yosys \
-    && cd yosys && make clean && make yosys-abc \
+    && cd yosys && make clean && make config-clang \
     && make -j$(nproc) && make install && cd - && rm -r yosys
+    # prjtrellis
+    RUN git clone --recursive https://github.com/YosysHQ/prjtrellis.git prjtrellis \
+    && cd prjtrellis && source environment.sh \
+    && cd libtrellis && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
+    && make -j$(nproc) && make install && cd - && rm -r prjtrellis
     # nextpnr
     RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
     && cd nextpnr && cmake . -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local \
     && make -j$(nproc) && make install && cd - && rm -r nextpnr
     # iverilog
     RUN git clone --recursive https://github.com/steveicarus/iverilog.git iverilog \
-    && cd iverilog && make check && autoconf && ./configure && make clean \
+    && cd iverilog && sh autoconf.sh && ./configure \
     && make -j$(nproc) && make install && cd - && rm -r iverilog
-    # verilator
-    RUN git clone --recursive https://github.com/ddm/verilator.git verilator \
-    && cd verilator && autoconf && ./configure && make clean \
-    && make -j$(nproc) && make install && cd - && rm -r verilator
- 
+
 CMD [ "/bin/bash" ]
