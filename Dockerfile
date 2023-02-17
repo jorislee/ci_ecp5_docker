@@ -47,8 +47,7 @@ RUN apt-get update && apt-get install -y \
     && make -j$(nproc) && make install && cd - && rm -r yosys
     # prjtrellis
     RUN git clone --recursive https://github.com/YosysHQ/prjtrellis.git prjtrellis \
-    && cd prjtrellis && source environment.sh \
-    && cd libtrellis && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
+    && cd prjtrellis/libtrellis && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
     && make -j$(nproc) && make install && cd - && rm -r prjtrellis
     # nextpnr
     RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
