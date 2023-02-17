@@ -44,6 +44,9 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
+          build-args: |
+            "CI_BUILD_TOKEN=${{ secrets.CI_BUILD_TOKEN }}"
+            "CI_KERNEL_FEITENG_URL=${{ secrets.CI_KERNEL_FEITENG_URL }}"
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ secrets.DOCKERHUB_IMAGE_NAME }}:latest
           labels: ${{ steps.meta.outputs.labels }}
