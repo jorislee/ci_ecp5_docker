@@ -3,7 +3,6 @@ FROM ubuntu:20.04
 ARG DEBIAN_FRONTEND=noninteractive
     
 RUN apt-get update && apt-get install -y \
-    # IceStorm and friends
     bison \
     build-essential \
     clang \
@@ -25,7 +24,6 @@ RUN apt-get update && apt-get install -y \
     qt5-default \
     tcl-dev \
     xdot \
-    # Icarus Verilog and friends
     autoconf \
     bison \
     flex \
@@ -51,7 +49,7 @@ RUN apt-get update && apt-get install -y \
     && make -j$(nproc) && make install && cd - && rm -r prjtrellis
     # nextpnr
     RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
-    && cd nextpnr && cmake . -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local \
+    && cd nextpnr && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
     && make -j$(nproc) && make install && cd - && rm -r nextpnr
     # iverilog
     RUN git clone --recursive https://github.com/steveicarus/iverilog.git iverilog \
