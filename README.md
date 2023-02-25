@@ -9,7 +9,6 @@ Based on ubuntu:20.04 configure ecp5 compilation environment docker.
   ARG DEBIAN_FRONTEND=noninteractive
 
   RUN apt-get update && apt-get install -y \
-      # IceStorm and friends
       bison \
       build-essential \
       clang \
@@ -31,7 +30,6 @@ Based on ubuntu:20.04 configure ecp5 compilation environment docker.
       qt5-default \
       tcl-dev \
       xdot \
-      # Icarus Verilog and friends
       autoconf \
       bison \
       flex \
@@ -44,28 +42,28 @@ Based on ubuntu:20.04 configure ecp5 compilation environment docker.
       libhidapi-dev \
       libusb-dev \
       libusb-1.0 \
+      zlib1g-dev \
       && rm -rf /var/lib/apt/lists/*
 
-      # prjtrellis
-      RUN git clone --recursive https://github.com/SymbiFlow/prjtrellis.git prjtrellis \
-      && cd prjtrellis/libtrellis && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
-      && make -j$(nproc) && make clean && make install && cd - && rm -r prjtrellis
-      # yosys
-      RUN git clone --recursive https://github.com/cliffordwolf/yosys.git yosys \
-      && cd yosys && make clean && make yosys-abc \
+  # yosys
+  RUN git clone --recursive https://github.com/cliffordwolf/yosys.git yosys \
+      && cd yosys && make clean && make config-clang \
       && make -j$(nproc) && make install && cd - && rm -r yosys
-      # nextpnr
-      RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
-      && cd nextpnr && cmake . -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local \
+
+  # prjtrellis
+  RUN git clone --recursive https://github.com/YosysHQ/prjtrellis.git prjtrellis \
+      && cd prjtrellis/libtrellis && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
+      && make -j$(nproc) && make install && cd - && rm -r prjtrellis
+
+  # nextpnr
+  RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
+      && cd nextpnr && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
       && make -j$(nproc) && make install && cd - && rm -r nextpnr
-      # iverilog
-      RUN git clone --recursive https://github.com/steveicarus/iverilog.git iverilog \
-      && cd iverilog && autoconf && ./configure && make clean \
+
+  # iverilog
+  RUN git clone --recursive https://github.com/steveicarus/iverilog.git iverilog \
+      && cd iverilog && sh autoconf.sh && ./configure \
       && make -j$(nproc) && make install && cd - && rm -r iverilog
-      # verilator
-      RUN git clone --recursive https://github.com/ddm/verilator.git verilator \
-      && cd verilator && autoconf && ./configure && make clean \
-      && make -j$(nproc) && make install && cd - && rm -r verilator
 
   CMD [ "/bin/bash" ]
   ```
