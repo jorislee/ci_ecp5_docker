@@ -18,10 +18,8 @@ RUN apt-get update && apt-get install -y \
     libreadline-dev \
     mercurial \
     pkg-config \
-    python \
     python3 \
     python3-dev \
-    qt5-default \
     tcl-dev \
     xdot \
     autoconf \
@@ -34,9 +32,12 @@ RUN apt-get update && apt-get install -y \
     gtkwave \
     make \
     libhidapi-dev \
-    libusb-dev \
-    libusb-1.0 \
+    libusb-1.0-0 \
+    libusb-1.0-0-dev \
     zlib1g-dev \
+    libevent-dev \
+    libjson-c-dev \
+    verilator \
     && rm -rf /var/lib/apt/lists/*
     
 # yosys
