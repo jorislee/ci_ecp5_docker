@@ -108,7 +108,6 @@ build_prjtrellis() {
   cmake -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" \
-    -DBUILD_PYTHON=OFF \
     .
   cmake --build . --parallel "$JOBS"
   cmake --install . --strip
