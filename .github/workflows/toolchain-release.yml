@@ -39,10 +39,7 @@ jobs:
             libboost-all-dev \
             libeigen3-dev \
             libffi-dev \
-            libftdi-dev \
-            libhidapi-dev \
             libreadline-dev \
-            libtcl-dev \
             libtommath-dev \
             libusb-1.0-0-dev \
             lld \

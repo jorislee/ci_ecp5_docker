@@ -18,10 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-all-dev \
     libeigen3-dev \
     libffi-dev \
-    libftdi-dev \
-    libhidapi-dev \
     libreadline-dev \
-    libtcl-dev \
     libtommath-dev \
     libusb-1.0-0-dev \
     lld \
@@ -59,8 +56,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-program-options1.83.0 \
     libboost-thread1.83.0 \
     libffi8 \
-    libftdi1-2 \
-    libhidapi-hidraw0 \
     libreadline8t64 \
     libtcl8.6 \
     libtommath1 \
