@@ -61,12 +61,40 @@ jobs:
             --markdown-file build/tool-versions.md \
             --github-output "$GITHUB_OUTPUT"
 
-      - name: Build toolchain
+      - name: Build Yosys
         run: |
           bash scripts/build-ecp5-toolchain.sh \
             --versions build/tool-versions.env \
             --prefix "$PWD/dist/ecp5-toolchain" \
-            --work-dir "$PWD/build/source"
+            --work-dir "$PWD/build/source" \
+            --only yosys
+
+      - name: Build Project Trellis
+        run: |
+          bash scripts/build-ecp5-toolchain.sh \
+            --versions build/tool-versions.env \
+            --prefix "$PWD/dist/ecp5-toolchain" \
+            --work-dir "$PWD/build/source" \
+            --only prjtrellis \
+            --no-clean
+
+      - name: Build nextpnr-ecp5
+        run: |
+          bash scripts/build-ecp5-toolchain.sh \
+            --versions build/tool-versions.env \
+            --prefix "$PWD/dist/ecp5-toolchain" \
+            --work-dir "$PWD/build/source" \
+            --only nextpnr \
+            --no-clean
+
+      - name: Build Icarus Verilog
+        run: |
+          bash scripts/build-ecp5-toolchain.sh \
+            --versions build/tool-versions.env \
+            --prefix "$PWD/dist/ecp5-toolchain" \
+            --work-dir "$PWD/build/source" \
+            --only iverilog \
+            --no-clean
 
       - name: Smoke test ECP5 flow
         run: |

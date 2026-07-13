@@ -3,16 +3,20 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: build-ecp5-toolchain.sh --versions FILE --prefix DIR --work-dir DIR
+Usage: build-ecp5-toolchain.sh --versions FILE --prefix DIR --work-dir DIR [--only TOOL] [--no-clean]
 
 Builds Yosys, Project Trellis, nextpnr-ecp5, and Icarus Verilog from the
 resolved upstream tags written by scripts/resolve_tool_versions.py.
+
+TOOL may be one of: all, yosys, prjtrellis, nextpnr, iverilog.
 EOF
 }
 
 VERSIONS_FILE=
 PREFIX=
 WORK_DIR=
+ONLY=all
+CLEAN=1
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -27,6 +31,14 @@ while [[ $# -gt 0 ]]; do
     --work-dir)
       WORK_DIR=$2
       shift 2
+      ;;
+    --only)
+      ONLY=$2
+      shift 2
+      ;;
+    --no-clean)
+      CLEAN=0
+      shift
       ;;
     -h|--help)
       usage
@@ -52,7 +64,9 @@ PREFIX=$(realpath -m "$PREFIX")
 WORK_DIR=$(realpath -m "$WORK_DIR")
 JOBS=${JOBS:-$(nproc)}
 
-rm -rf "$PREFIX" "$WORK_DIR"
+if [[ "$CLEAN" == "1" ]]; then
+  rm -rf "$PREFIX" "$WORK_DIR"
+fi
 mkdir -p "$PREFIX" "$WORK_DIR"
 
 export PATH="$PREFIX/bin:$PATH"
@@ -147,14 +161,29 @@ EOF
   chmod +x "$PREFIX/setup-env.sh"
 }
 
-build_yosys
-build_prjtrellis
-build_nextpnr
-build_iverilog
-write_setup_env
-
-yosys -V
-nextpnr-ecp5 --help >/dev/null
-ecppack --help >/dev/null
-iverilog -V >/dev/null
-vvp -V >/dev/null
+case "$ONLY" in
+  all)
+    build_yosys
+    build_prjtrellis
+    build_nextpnr
+    build_iverilog
+    write_setup_env
+    ;;
+  yosys)
+    build_yosys
+    ;;
+  prjtrellis)
+    build_prjtrellis
+    ;;
+  nextpnr)
+    build_nextpnr
+    ;;
+  iverilog)
+    build_iverilog
+    write_setup_env
+    ;;
+  *)
+    echo "Unknown tool for --only: $ONLY" >&2
+    exit 2
+    ;;
+esac
