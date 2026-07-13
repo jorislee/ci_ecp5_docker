@@ -1,63 +1,80 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04 AS build
 
 ARG DEBIAN_FRONTEND=noninteractive
-    
-RUN apt-get update && apt-get install -y \
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    autoconf \
     bison \
     build-essential \
+    ca-certificates \
     clang \
     cmake \
+    file \
     flex \
     gawk \
     git \
+    gperf \
     graphviz \
     libboost-all-dev \
     libeigen3-dev \
     libffi-dev \
     libftdi-dev \
+    libhidapi-dev \
     libreadline-dev \
-    mercurial \
+    libtcl-dev \
+    libtommath-dev \
+    libusb-1.0-0-dev \
+    lld \
+    ninja-build \
     pkg-config \
     python3 \
     python3-dev \
     tcl-dev \
-    xdot \
-    autoconf \
-    bison \
-    flex \
-    g++ \
-    gcc \
-    git \
-    gperf \
-    gtkwave \
-    make \
-    libhidapi-dev \
-    libusb-1.0-0 \
-    libusb-1.0-0-dev \
+    xz-utils \
     zlib1g-dev \
-    libevent-dev \
-    libjson-c-dev \
-    verilator \
+    zstd \
     && rm -rf /var/lib/apt/lists/*
-    
-# yosys
-RUN git clone --recursive https://github.com/cliffordwolf/yosys.git yosys \
-    && cd yosys && make clean && make config-clang \
-    && make -j$(nproc) && make install && cd - && rm -r yosys
 
-# prjtrellis
-RUN git clone --recursive https://github.com/YosysHQ/prjtrellis.git prjtrellis \
-    && cd prjtrellis/libtrellis && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
-    && make -j$(nproc) && make install && cd - && rm -r prjtrellis
+WORKDIR /src
+COPY scripts ./scripts
 
-# nextpnr
-RUN git clone --recursive https://github.com/YosysHQ/nextpnr.git nextpnr \
-    && cd nextpnr && cmake -DARCH=ecp5 -DTRELLIS_INSTALL_PREFIX=/usr/local . \
-    && make -j$(nproc) && make install && cd - && rm -r nextpnr
+RUN python3 scripts/resolve_tool_versions.py \
+      --env-file build/tool-versions.env \
+      --json-file build/tool-versions.json \
+      --markdown-file build/tool-versions.md \
+    && bash scripts/build-ecp5-toolchain.sh \
+      --versions build/tool-versions.env \
+      --prefix /opt/ecp5-toolchain \
+      --work-dir /src/build/source \
+    && bash scripts/smoke-test-ecp5.sh /opt/ecp5-toolchain
 
-# iverilog
-RUN git clone --recursive https://github.com/steveicarus/iverilog.git iverilog \
-    && cd iverilog && sh autoconf.sh && ./configure \
-    && make -j$(nproc) && make install && cd - && rm -r iverilog
+FROM ubuntu:24.04
 
-CMD [ "/bin/bash" ]
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    libboost-filesystem1.83.0 \
+    libboost-iostreams1.83.0 \
+    libboost-program-options1.83.0 \
+    libboost-thread1.83.0 \
+    libffi8 \
+    libftdi1-2 \
+    libhidapi-hidraw0 \
+    libreadline8t64 \
+    libtcl8.6 \
+    libtommath1 \
+    libusb-1.0-0 \
+    python3 \
+    zlib1g \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /opt/ecp5-toolchain /opt/ecp5-toolchain
+
+ENV ECP5_TOOLCHAIN_ROOT=/opt/ecp5-toolchain
+ENV PATH=/opt/ecp5-toolchain/bin:$PATH
+ENV LD_LIBRARY_PATH=/opt/ecp5-toolchain/lib:/opt/ecp5-toolchain/lib/trellis
+ENV CMAKE_PREFIX_PATH=/opt/ecp5-toolchain
+ENV TRELLIS=/opt/ecp5-toolchain/share/trellis
+
+CMD ["/bin/bash"]

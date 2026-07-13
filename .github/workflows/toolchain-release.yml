@@ -1,0 +1,126 @@
+name: Build ECP5 Toolchain Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build Linux x86_64 release package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            autoconf \
+            bison \
+            build-essential \
+            ca-certificates \
+            clang \
+            cmake \
+            file \
+            flex \
+            gawk \
+            git \
+            gperf \
+            graphviz \
+            libboost-all-dev \
+            libeigen3-dev \
+            libffi-dev \
+            libftdi-dev \
+            libhidapi-dev \
+            libreadline-dev \
+            libtcl-dev \
+            libtommath-dev \
+            libusb-1.0-0-dev \
+            lld \
+            ninja-build \
+            pkg-config \
+            python3 \
+            python3-dev \
+            tcl-dev \
+            xz-utils \
+            zlib1g-dev \
+            zstd
+
+      - name: Resolve latest upstream tags
+        id: versions
+        run: |
+          python3 scripts/resolve_tool_versions.py \
+            --env-file build/tool-versions.env \
+            --json-file build/tool-versions.json \
+            --markdown-file build/tool-versions.md \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Build toolchain
+        run: |
+          bash scripts/build-ecp5-toolchain.sh \
+            --versions build/tool-versions.env \
+            --prefix "$PWD/dist/ecp5-toolchain" \
+            --work-dir "$PWD/build/source"
+
+      - name: Smoke test ECP5 flow
+        run: |
+          bash scripts/smoke-test-ecp5.sh "$PWD/dist/ecp5-toolchain"
+
+      - name: Package release assets
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          cp build/tool-versions.env dist/ecp5-toolchain/tool-versions.env
+          cp build/tool-versions.json dist/ecp5-toolchain/tool-versions.json
+          cp build/tool-versions.md dist/ecp5-toolchain/tool-versions.md
+          tar -C dist -I "zstd -19 -T0" -cf "release/${{ steps.versions.outputs.asset_basename }}.tar.zst" ecp5-toolchain
+          cp build/tool-versions.env "release/${{ steps.versions.outputs.asset_basename }}.env"
+          cp build/tool-versions.json "release/${{ steps.versions.outputs.asset_basename }}.json"
+          (cd release && sha256sum * > SHA256SUMS)
+
+      - name: Write release notes
+        run: |
+          cat > release-notes.md <<'EOF'
+          # ECP5 toolchain release
+
+          This release is built from the latest upstream tags resolved during the workflow run.
+
+          ## Download from another GitHub Actions workflow
+
+          ```sh
+          curl -L -o ecp5-toolchain-linux-x86_64.tar.zst \
+            https://github.com/${{ github.repository }}/releases/latest/download/${{ steps.versions.outputs.asset_basename }}.tar.zst
+          tar --use-compress-program=unzstd -xf ecp5-toolchain-linux-x86_64.tar.zst
+          . ./ecp5-toolchain/setup-env.sh
+          ```
+
+          EOF
+          cat build/tool-versions.md >> release-notes.md
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.versions.outputs.asset_basename }}
+          path: release/*
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.versions.outputs.release_tag }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ steps.versions.outputs.release_name }}
+          body_path: release-notes.md
+          files: release/*
+          fail_on_unmatched_files: true
+          make_latest: true
+          overwrite_files: true
