@@ -41,13 +41,20 @@ module blinky_tb;
 endmodule
 EOF
 
+cat > "$TEST_DIR/blinky_flow.py" <<'EOF'
+ctx.pack()
+ctx.place()
+ctx.route()
+write_bitstream(ctx, "", "blinky.config")
+EOF
+
 pushd "$TEST_DIR" >/dev/null
 yosys -q -p "synth_ecp5 -top blinky -json blinky.json" blinky.v
-nextpnr-ecp5 --25k --package CABGA256 --json blinky.json --textcfg blinky.config --lpf-allow-unconstrained --quiet
+nextpnr-ecp5 --25k --package CABGA256 --json blinky.json --run blinky_flow.py --lpf-allow-unconstrained --quiet
 ecppack blinky.config blinky.bit
 iverilog -o blinky_sim.vvp blinky.v blinky_tb.v
 vvp blinky_sim.vvp
 test -s blinky.bit
 popd >/dev/null
 
-echo "ECP5 smoke test passed: yosys -> nextpnr-ecp5 -> ecppack, plus iverilog/vvp."
+echo "ECP5 smoke test passed: yosys -> Python-driven nextpnr-ecp5 -> ecppack, plus iverilog/vvp."

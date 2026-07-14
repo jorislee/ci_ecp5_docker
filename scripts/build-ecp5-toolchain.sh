@@ -126,7 +126,7 @@ build_nextpnr() {
     -DARCH=ecp5 \
     -DTRELLIS_INSTALL_PREFIX="$PREFIX" \
     -DBUILD_GUI=OFF \
-    -DBUILD_PYTHON=OFF \
+    -DBUILD_PYTHON=ON \
     -DUSE_IPO=OFF
   cmake --build "$src/build" --parallel "$JOBS"
   cmake --install "$src/build" --strip
