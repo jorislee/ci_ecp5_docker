@@ -28,6 +28,13 @@ TOOLS = (
     Tool("iverilog", "Icarus Verilog", "https://github.com/steveicarus/iverilog.git", ("v",)),
 )
 
+PINNED_REVISIONS = {
+    "nextpnr": {
+        "tag": "nextpnr-0.10-85-g4c72cee9",
+        "commit": "4c72cee9eea31f7222d5c8e6a0fa4490b4bb0c19",
+    },
+}
+
 
 def run_git_ls_remote(repo: str) -> list[tuple[str, str]]:
     result = subprocess.run(
@@ -71,6 +78,18 @@ def version_key(tag: str, prefixes: tuple[str, ...]) -> tuple[tuple[int, ...], i
 
 
 def select_latest(tool: Tool) -> dict[str, str]:
+    pinned = PINNED_REVISIONS.get(tool.key)
+    if pinned is not None:
+        repo_url = tool.repo.removesuffix(".git")
+        return {
+            "key": tool.key,
+            "display": tool.display,
+            "repo": tool.repo,
+            "tag": pinned["tag"],
+            "commit": pinned["commit"],
+            "tag_url": f"{repo_url}/commit/{pinned['commit']}",
+        }
+
     candidates = []
     for tag, commit in run_git_ls_remote(tool.repo):
         key = version_key(tag, tool.prefixes)

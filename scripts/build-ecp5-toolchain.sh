@@ -6,7 +6,7 @@ usage() {
 Usage: build-ecp5-toolchain.sh --versions FILE --prefix DIR --work-dir DIR [--only TOOL] [--no-clean]
 
 Builds Yosys, Project Trellis, nextpnr-ecp5, and Icarus Verilog from the
-resolved upstream tags written by scripts/resolve_tool_versions.py.
+resolved upstream revisions written by scripts/resolve_tool_versions.py.
 
 TOOL may be one of: all, yosys, prjtrellis, nextpnr, iverilog.
 EOF
@@ -73,13 +73,17 @@ export PATH="$PREFIX/bin:$PATH"
 export LD_LIBRARY_PATH="$PREFIX/lib:$PREFIX/lib/trellis:${LD_LIBRARY_PATH:-}"
 export CMAKE_PREFIX_PATH="$PREFIX:${CMAKE_PREFIX_PATH:-}"
 
-clone_tag() {
+clone_revision() {
   local repo=$1
-  local tag=$2
-  local dest=$3
+  local display_ref=$2
+  local commit=$3
+  local dest=$4
 
-  echo "::group::Clone $repo @ $tag"
-  git clone --depth 1 --branch "$tag" --recurse-submodules --shallow-submodules "$repo" "$dest"
+  echo "::group::Clone $repo @ $display_ref ($commit)"
+  git init --quiet "$dest"
+  git -C "$dest" remote add origin "$repo"
+  git -C "$dest" fetch --quiet --depth 1 origin "$commit"
+  git -C "$dest" checkout --quiet --detach FETCH_HEAD
   git -C "$dest" submodule update --init --recursive --depth 1 || \
     git -C "$dest" submodule update --init --recursive
   echo "::endgroup::"
@@ -87,7 +91,7 @@ clone_tag() {
 
 build_yosys() {
   local src="$WORK_DIR/yosys"
-  clone_tag "$YOSYS_REPO" "$YOSYS_TAG" "$src"
+  clone_revision "$YOSYS_REPO" "$YOSYS_TAG" "$YOSYS_COMMIT" "$src"
 
   echo "::group::Build Yosys"
   cmake -S "$src" -B "$src/build" -G Ninja \
@@ -101,7 +105,7 @@ build_yosys() {
 
 build_prjtrellis() {
   local src="$WORK_DIR/prjtrellis"
-  clone_tag "$PRJTRELLIS_REPO" "$PRJTRELLIS_TAG" "$src"
+  clone_revision "$PRJTRELLIS_REPO" "$PRJTRELLIS_TAG" "$PRJTRELLIS_COMMIT" "$src"
 
   echo "::group::Build Project Trellis"
   pushd "$src/libtrellis" >/dev/null
@@ -117,7 +121,7 @@ build_prjtrellis() {
 
 build_nextpnr() {
   local src="$WORK_DIR/nextpnr"
-  clone_tag "$NEXTPNR_REPO" "$NEXTPNR_TAG" "$src"
+  clone_revision "$NEXTPNR_REPO" "$NEXTPNR_TAG" "$NEXTPNR_COMMIT" "$src"
 
   echo "::group::Build nextpnr-ecp5"
   cmake -S "$src" -B "$src/build" -G Ninja \
@@ -135,7 +139,7 @@ build_nextpnr() {
 
 build_iverilog() {
   local src="$WORK_DIR/iverilog"
-  clone_tag "$IVERILOG_REPO" "$IVERILOG_TAG" "$src"
+  clone_revision "$IVERILOG_REPO" "$IVERILOG_TAG" "$IVERILOG_COMMIT" "$src"
 
   echo "::group::Build Icarus Verilog"
   pushd "$src" >/dev/null
